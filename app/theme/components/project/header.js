@@ -11,7 +11,7 @@ export default {
             minWidth: 'xs',
             width: 'full',
             boxShadow: 'base',
-            backgroundColor: 'white'
+            backgroundColor: 'blue.100'
         },
         content: {
             maxWidth: 'container.xxxl',

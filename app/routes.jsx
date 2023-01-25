@@ -24,6 +24,10 @@ const fallback = <Skeleton height="75vh" width="100%" />
 
 // Pages
 const Home = loadable(() => import('./pages/home'), {fallback})
+const ContentSearch = loadable(() => import('@capgemini/content-assets/content-search'), {fallback})
+const ContentDetails = loadable(() => import('@capgemini/content-assets/content-details'), {
+    fallback
+})
 const Login = loadable(() => import('./pages/login'), {fallback})
 const Registration = loadable(() => import('./pages/registration'), {fallback})
 const ResetPassword = loadable(() => import('./pages/reset-password'), {fallback})
@@ -97,6 +101,14 @@ const routes = [
     {
         path: '/account/wishlist',
         component: Wishlist
+    },
+    {
+        path: '/content-search',
+        component: ContentSearch
+    },
+    {
+        path: '/content/:id',
+        component: ContentDetails
     },
     {
         path: '*',

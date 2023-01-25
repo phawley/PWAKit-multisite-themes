@@ -10,10 +10,12 @@ import PropTypes from 'prop-types'
 import {useHistory, useLocation} from 'react-router-dom'
 import {getAssetUrl} from 'pwa-kit-react-sdk/ssr/universal/utils'
 import {getAppOrigin} from 'pwa-kit-react-sdk/utils/url'
+import fetch from 'cross-fetch'
 
 // Chakra
-import {Box, useDisclosure, useStyleConfig} from '@chakra-ui/react'
+import {Text, Box, useDisclosure, useStyleConfig} from '@chakra-ui/react'
 import {SkipNavLink, SkipNavContent} from '@chakra-ui/skip-nav'
+import {InfoOutlineIcon} from '@chakra-ui/icons'
 
 // Contexts
 import {CategoriesProvider, CurrencyProvider} from '../../contexts'
@@ -52,13 +54,18 @@ import useMultiSite from '../../hooks/use-multi-site'
 const DEFAULT_NAV_DEPTH = 3
 const DEFAULT_ROOT_CATEGORY = 'root'
 const DEFAULT_LOCALE = 'en-US'
+const GEO_LOCATION = {
+    lat: '38.6426',
+    long: '-90.3237'
+}
 
 const App = (props) => {
     const {
         children,
         targetLocale = DEFAULT_LOCALE,
         messages = {},
-        categories: allCategories = {}
+        categories: allCategories = {},
+        privacyPolicy
     } = props
 
     const appOrigin = getAppOrigin()
@@ -71,6 +78,7 @@ const App = (props) => {
 
     const [isOnline, setIsOnline] = useState(true)
     const styles = useStyleConfig('App')
+    const [closestStore, setClosestStore] = useState(undefined)
 
     const {isOpen, onOpen, onClose} = useDisclosure()
 
@@ -102,6 +110,21 @@ const App = (props) => {
         watchOnlineStatus((isOnline) => {
             setIsOnline(isOnline)
         })
+        const fetchStore = async () => {
+            const res = await fetch(
+                `${getAppOrigin()}/mobify/proxy/ocapi/s/RefArch/dw/shop/v20_2/stores?latitude=${
+                    GEO_LOCATION.lat
+                }&longitude=${GEO_LOCATION.long}&client_id=bf54d5e5-2349-4cf2-bcba-b9b9feb73733`
+            )
+            if (res.ok) {
+                const storeResult = await res.json()
+                const firstStore = storeResult.data[0]
+                if (firstStore) {
+                    setClosestStore(firstStore)
+                }
+            }
+        }
+        fetchStore()
     }, [])
 
     useEffect(() => {
@@ -233,6 +256,26 @@ const App = (props) => {
                             </Box>
 
                             {!isOnline && <OfflineBanner />}
+                            {closestStore && (
+                                <Box
+                                    bg="blue.500"
+                                    w="100%"
+                                    d="flex"
+                                    justifyContent="center"
+                                    alignItems="center"
+                                    p={2}
+                                    color="white"
+                                >
+                                    <InfoOutlineIcon />
+                                    <Text fontWeight="bold" pl={1}>
+                                        Closest Store:{' '}
+                                    </Text>
+                                    <Text pl={2}>
+                                        {closestStore.name} - {closestStore.address1},{' '}
+                                        {closestStore.state_code}, {closestStore.postal_code}
+                                    </Text>
+                                </Box>
+                            )}
                             <AddToCartModalProvider>
                                 <SkipNavContent
                                     style={{
@@ -257,6 +300,14 @@ const App = (props) => {
                                 </SkipNavContent>
 
                                 {!isCheckout ? <Footer /> : <CheckoutFooter />}
+
+                                <div>
+                                    {privacyPolicy && (
+                                        <div
+                                            dangerouslySetInnerHTML={{__html: privacyPolicy.c_body}}
+                                        />
+                                    )}
+                                </div>
 
                                 <AuthModal {...authModal} />
                             </AddToCartModalProvider>
@@ -328,10 +379,20 @@ Learn more with our localization guide. https://sfdc.co/localization-guide
     // the application.
     const categories = flatten(rootCategory, 'categories')
 
+    let privacyPolicy
+    const result = await fetch(
+        `${getAppOrigin()}/mobify/proxy/ocapi/s/RefArch/dw/shop/v20_2/content/privacy-policy?client_id=bf54d5e5-2349-4cf2-bcba-b9b9feb73733`
+    )
+
+    if (result.ok) {
+        privacyPolicy = await result.json()
+    }
+
     return {
         targetLocale,
         messages,
         categories,
+        privacyPolicy: privacyPolicy,
         config: res?.locals?.config
     }
 }
@@ -341,7 +402,8 @@ App.propTypes = {
     targetLocale: PropTypes.string,
     messages: PropTypes.object,
     categories: PropTypes.object,
-    config: PropTypes.object
+    config: PropTypes.object,
+    privacyPolicy: PropTypes.object
 }
 
 export default App

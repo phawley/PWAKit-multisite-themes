@@ -601,7 +601,7 @@ ProductList.getProps = async ({res, params, location, api}) => {
     }
 
     // only search master products
-    searchParams.refine.push('htype=master')
+    // searchParams.refine.push('htype=master')
 
     // Set the `cache-control` header values to align with the Commerce API settings.
     if (res) {

@@ -23,6 +23,14 @@ export const useProduct = (product) => {
     const initialQuantity = product?.quantity || product?.minOrderQuantity || 1
 
     const intl = useIntl()
+    // Simple Product Functionality
+    const item = product?.type?.item || false
+    const master = product?.type?.master || false
+    const simpleProduct = {
+        productId: product?.id,
+        price: product?.price,
+        orderable: product?.inventory?.orderable
+    }
     const variant = useVariant(product)
     const variationParams = useVariationParams(product)
     const variationAttributes = useVariationAttributes(product)
@@ -50,6 +58,8 @@ export const useProduct = (product) => {
         )
     }
     const showInventoryMessage = variant && (isOutOfStock || unfulfillable)
+    console.log('showInventoryMessage')
+    console.log(showInventoryMessage)
     const inventoryMessage =
         (isOutOfStock && inventoryMessages[OUT_OF_STOCK]) ||
         (unfulfillable && inventoryMessages[UNFULFILLABLE])
@@ -71,6 +81,9 @@ export const useProduct = (product) => {
         stepQuantity,
         variationParams,
         setQuantity,
+        item,
+        master,
+        simpleProduct,
         variant,
         stockLevel
     }

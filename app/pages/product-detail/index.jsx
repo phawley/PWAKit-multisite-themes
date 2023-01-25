@@ -28,6 +28,7 @@ import {useVariant} from '../../hooks'
 import useWishlist from '../../hooks/use-wishlist'
 import useNavigation from '../../hooks/use-navigation'
 import useEinstein from '../../commerce-api/hooks/useEinstein'
+import {useUpdateLogger} from '../../hooks/use-update-logger'
 
 // Project Components
 import RecommendedProducts from '../../components/recommended-products'
@@ -46,8 +47,9 @@ import {
 import {rebuildPathWithParams} from '../../utils/url'
 import {useHistory} from 'react-router-dom'
 import {useToast} from '../../hooks/use-toast'
+import {pluckIds} from '../../utils/utils'
 
-const ProductDetail = ({category, product, isLoading}) => {
+const ProductDetail = ({category, product, promotions, isLoading}) => {
     const {formatMessage} = useIntl()
     const basket = useBasket()
     const history = useHistory()
@@ -56,6 +58,7 @@ const ProductDetail = ({category, product, isLoading}) => {
     const toast = useToast()
     const navigate = useNavigation()
     const [primaryCategory, setPrimaryCategory] = useState(category)
+    useUpdateLogger(variant, 'Variant on PDP')
 
     // This page uses the `primaryCategoryId` to retrieve the category data. This attribute
     // is only available on `master` products. Since a variation will be loaded once all the
@@ -158,6 +161,7 @@ const ProductDetail = ({category, product, isLoading}) => {
                 <ProductView
                     product={product}
                     category={primaryCategory?.parentCategoryTree || []}
+                    promotions={promotions}
                     addToCart={(variant, quantity) => handleAddToCart(variant, quantity)}
                     addToWishlist={(_, quantity) => handleAddToWishlist(quantity)}
                     isProductLoading={isLoading}
@@ -315,7 +319,7 @@ ProductDetail.shouldGetProps = ({previousLocation, location}) => {
 
 ProductDetail.getProps = async ({res, params, location, api}) => {
     const {productId} = params
-    let category, product
+    let category, product, promotions
     const urlParams = new URLSearchParams(location.search)
 
     product = await api.shopperProducts.getProduct({
@@ -328,6 +332,16 @@ ProductDetail.getProps = async ({res, params, location, api}) => {
     if (product?.primaryCategoryId) {
         category = await api.shopperProducts.getCategory({
             parameters: {id: product?.primaryCategoryId, levels: 1}
+        })
+    }
+
+    // Get promotionIds as a string of comma-separated values
+    if (product.productPromotions) {
+        const promotionIds = pluckIds(product.productPromotions, 'promotionId')
+
+        // Get the promotions for the product
+        promotions = await api.shopperPromotions.getPromotions({
+            parameters: {ids: promotionIds}
         })
     }
 
@@ -344,8 +358,11 @@ ProductDetail.getProps = async ({res, params, location, api}) => {
     if (typeof category?.type === 'string') {
         throw new HTTPNotFound(category.detail)
     }
+    if (typeof promotions?.type === 'string') {
+        throw new HTTPNotFound(promotions.detail)
+    }
 
-    return {category, product}
+    return {category, product, promotions}
 }
 
 ProductDetail.propTypes = {
@@ -357,6 +374,10 @@ ProductDetail.propTypes = {
      * The product object to be shown on the page..
      */
     product: PropTypes.object,
+    /**
+     * The promotion object to be shown on the page..
+     */
+    promotions: PropTypes.object,
     /**
      * The current state of `getProps` when running this value is `true`, otherwise it's
      * `false`. (Provided internally)

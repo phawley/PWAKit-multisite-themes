@@ -48,6 +48,7 @@ import {noop} from '../../utils/utils'
 import {navLinks, messages} from '../../pages/account/constant'
 import useNavigation from '../../hooks/use-navigation'
 import LoadingSpinner from '../loading-spinner'
+import {useUpdateLogger} from '../../hooks/use-update-logger'
 
 const ENTER_KEY = 'Enter'
 
@@ -82,6 +83,7 @@ const Header = ({
     const basket = useBasket()
     const customer = useCustomer()
     const navigate = useNavigation()
+    useUpdateLogger(basket.orderTotal, 'The Basket')
 
     const {isOpen, onClose, onOpen} = useDisclosure()
     const [isDesktop] = useMediaQuery('(min-width: 992px)')

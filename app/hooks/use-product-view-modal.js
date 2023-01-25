@@ -31,10 +31,12 @@ export const useProductViewModal = (initialProduct) => {
     const toast = useToast()
     const variant = useVariant(product)
     const cleanUpVariantParams = () => {
-        const paramToRemove = [...product.variationAttributes.map(({id}) => id), 'pid']
-        const updatedParams = removeQueryParamsFromPath(`${location.search}`, paramToRemove)
+        if (product.variationAttributes) {
+            const paramToRemove = [...product.variationAttributes.map(({id}) => id), 'pid']
+            const updatedParams = removeQueryParamsFromPath(`${location.search}`, paramToRemove)
 
-        history.replace({search: updatedParams})
+            history.replace({search: updatedParams})
+        }
     }
 
     useEffect(() => {

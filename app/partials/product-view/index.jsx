@@ -10,9 +10,22 @@ import PropTypes from 'prop-types'
 import {useHistory, useLocation} from 'react-router-dom'
 import {useIntl} from 'react-intl'
 
-import {Flex, Heading, Button, Skeleton, Box, Text, VStack, Fade, useTheme} from '@chakra-ui/react'
+import {
+    Flex,
+    Heading,
+    Button,
+    Skeleton,
+    Box,
+    Text,
+    VStack,
+    Fade,
+    useTheme,
+    Tooltip,
+    Spinner
+} from '@chakra-ui/react'
 import {useProduct} from '../../hooks'
 import {useAddToCartModalContext} from '../../hooks/use-add-to-cart-modal'
+import {useCommerceAPI} from '../../commerce-api/contexts'
 
 // project components
 import SwatchGroup from '../../components/swatch-group'
@@ -97,6 +110,9 @@ const ProductView = ({
         quantity,
         minOrderQuantity,
         setQuantity,
+        item,
+        master,
+        simpleProduct,
         variant,
         variationParams,
         variationAttributes,
@@ -106,9 +122,27 @@ const ProductView = ({
     const canAddToWishlist = !isProductLoading
     const canOrder =
         !isProductLoading &&
-        variant?.orderable &&
+        (variant?.orderable || product?.inventory.orderable) &&
         parseInt(quantity) > 0 &&
         parseInt(quantity) <= stockLevel
+    const [promotionMap, setPromotionMap] = useState({})
+    const productPromotions = product?.productPromotions || []
+    const api = useCommerceAPI()
+    const masterId = product?.master?.masterId ? product?.master?.masterId : product?.id
+
+    const handlePromotionHover = (id) => {
+        // Don't make a network request if you already loaded this data
+        if (promotionMap[id]) {
+            return
+        }
+        const getPromotion = async (id) => {
+            const promotions = await api.shopperPromotions.getPromotions({
+                parameters: {ids: id}
+            })
+            setPromotionMap({...promotionMap, [id]: promotions.data[0]})
+        }
+        getPromotion(id)
+    }
 
     const renderActionButtons = () => {
         const buttons = []
@@ -120,10 +154,19 @@ const ProductView = ({
             }
             if (!addToCart && !updateCart) return null
             if (updateCart) {
-                await updateCart(variant, quantity)
+                if (!variant) {
+                    await updateCart(simpleProduct, quantity)
+                } else {
+                    await updateCart(variant, quantity)
+                }
                 return
             }
-            await addToCart(variant, quantity)
+
+            if (!variant) {
+                await addToCart(simpleProduct, quantity)
+            } else {
+                await addToCart(variant, quantity)
+            }
             onAddToCartModalOpen({product, quantity})
         }
 
@@ -144,7 +187,7 @@ const ProductView = ({
                     disabled={showInventoryMessage}
                     width="100%"
                     variant="solid"
-                    marginBottom={4}
+                    marginBottom={40}
                 >
                     {updateCart
                         ? intl.formatMessage({
@@ -220,7 +263,7 @@ const ProductView = ({
                             />
                             <HideOnMobile>
                                 {showFullLink && product && (
-                                    <Link to={`/product/${product.master.masterId}`}>
+                                    <Link to={`/product/${masterId}`}>
                                         <Text color="blue.600">
                                             {intl.formatMessage({
                                                 defaultMessage: 'See full details',
@@ -373,7 +416,7 @@ const ProductView = ({
                         </Box>
                         <HideOnDesktop>
                             {showFullLink && product && (
-                                <Link to={`/product/${product.master.masterId}`}>
+                                <Link to={`/product/${masterId}`}>
                                     <Text color="blue.600">
                                         {intl.formatMessage({
                                             defaultMessage: 'See full details',
@@ -384,7 +427,24 @@ const ProductView = ({
                             )}
                         </HideOnDesktop>
                     </VStack>
-
+                    {/* Show Promotions: productPromotions is the array to loop over */}
+                    <Text>Available promotions:</Text>
+                    {productPromotions &&
+                        productPromotions.map(({promotionId, calloutMsg}) => (
+                            <Tooltip
+                                onOpen={() => {
+                                    handlePromotionHover(promotionId)
+                                }}
+                                key={promotionId}
+                                label={
+                                    (promotionMap[promotionId] &&
+                                        promotionMap[promotionId].details) || <Spinner />
+                                }
+                                aria-label="Promotion details"
+                            >
+                                <Text>{calloutMsg}</Text>
+                            </Tooltip>
+                        ))}
                     <Box>
                         {!showLoading && showInventoryMessage && (
                             <Fade in={true}>
