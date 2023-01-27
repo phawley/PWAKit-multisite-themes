@@ -15,5 +15,20 @@ module.exports = [
                 }
             ]
         }
+    },
+    {
+        id: 'RefArchGlobal',
+        l10n: {
+            supportedCurrencies: ['USD'],
+            defaultCurrency: 'USD',
+            defaultLocale: 'en-US',
+            supportedLocales: [
+                {
+                    id: 'en-US',
+                    // alias: 'us',
+                    preferredCurrency: 'USD'
+                }
+            ]
+        }
     }
 ]
