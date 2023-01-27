@@ -11,7 +11,6 @@ import {ChakraProvider} from '@chakra-ui/react'
 // Removes focus for non-keyboard interactions for the whole application
 import 'focus-visible/dist/focus-visible'
 
-import theme from '../../theme'
 import CommerceAPI from '../../commerce-api'
 import {
     BasketProvider,
@@ -24,6 +23,7 @@ import {resolveSiteFromUrl} from '../../utils/site-utils'
 import {resolveLocaleFromUrl} from '../../utils/utils'
 import {getConfig} from 'pwa-kit-runtime/utils/ssr-config'
 import {createUrlTemplate} from '../../utils/url'
+import {DefaultTheme, RefArchTheme, RefArchGlobalTheme} from '../../theme'
 
 /**
  * Use the AppConfig component to inject extra arguments into the getProps
@@ -36,6 +36,15 @@ import {createUrlTemplate} from '../../utils/url'
 const AppConfig = ({children, locals = {}}) => {
     const [basket, setBasket] = useState(null)
     const [customer, setCustomer] = useState(null)
+    let theme = DefaultTheme
+    if (locals.site.id) {
+        if (locals.site.id === 'RefArch') {
+            theme = RefArchTheme
+        } else if (locals.site.id === 'RefArchGlobal') {
+            theme = RefArchGlobalTheme
+        }
+    }
+    console.log(locals.site.id)
 
     return (
         <MultiSiteProvider site={locals.site} locale={locals.locale} buildUrl={locals.buildUrl}>
