@@ -23,7 +23,7 @@ import {resolveSiteFromUrl} from '../../utils/site-utils'
 import {resolveLocaleFromUrl} from '../../utils/utils'
 import {getConfig} from 'pwa-kit-runtime/utils/ssr-config'
 import {createUrlTemplate} from '../../utils/url'
-import {DefaultTheme, RefArchTheme, RefArchGlobalTheme} from '../../theme'
+import themes from '../../theme'
 
 /**
  * Use the AppConfig component to inject extra arguments into the getProps
@@ -36,15 +36,7 @@ import {DefaultTheme, RefArchTheme, RefArchGlobalTheme} from '../../theme'
 const AppConfig = ({children, locals = {}}) => {
     const [basket, setBasket] = useState(null)
     const [customer, setCustomer] = useState(null)
-    let theme = DefaultTheme
-    if (locals.site.id) {
-        if (locals.site.id === 'RefArch') {
-            theme = RefArchTheme
-        } else if (locals.site.id === 'RefArchGlobal') {
-            theme = RefArchGlobalTheme
-        }
-    }
-    console.log(locals.site.id)
+    const theme = locals.site.id ? themes[locals.site.id] : themes.default
 
     return (
         <MultiSiteProvider site={locals.site} locale={locals.locale} buildUrl={locals.buildUrl}>

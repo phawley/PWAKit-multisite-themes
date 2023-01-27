@@ -6,10 +6,21 @@
  */
 import {extendTheme} from '@chakra-ui/react'
 
-import DefaultOverrides from './default'
-import RefArchOverrides from './RefArch'
-import RefArchGlobalOverrides from './RefArchGlobal'
+import allSitesOverrides from './allSites'
+import refArchOverrides from './RefArch'
+import refArchGlobalOverrides from './RefArchGlobal'
 
-export const DefaultTheme = extendTheme(DefaultOverrides)
-export const RefArchTheme = extendTheme(RefArchOverrides)
-export const RefArchGlobalTheme = extendTheme(RefArchGlobalOverrides)
+const allSitesTheme = extendTheme(allSitesOverrides)
+const refArchTheme = extendTheme(refArchOverrides)
+const refArchGlobalTheme = extendTheme(refArchGlobalOverrides)
+
+const RefArch = {...allSitesTheme, ...refArchTheme}
+const RefArchGlobal = {...allSitesTheme, ...refArchGlobalTheme}
+
+const themes = {
+    default: allSitesTheme,
+    RefArch,
+    RefArchGlobal
+}
+
+export default themes
