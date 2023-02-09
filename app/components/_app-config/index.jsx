@@ -38,6 +38,7 @@ const AppConfig = ({children, locals = {}}) => {
     const [customer, setCustomer] = useState(null)
     const theme = locals.site.id ? themes[locals.site.id] : themes.default
 
+    console.log(theme)
     return (
         <MultiSiteProvider site={locals.site} locale={locals.locale} buildUrl={locals.buildUrl}>
             <CommerceAPIProvider value={locals.api}>

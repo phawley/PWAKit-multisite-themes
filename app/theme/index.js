@@ -10,12 +10,12 @@ import allSitesOverrides from './allSites'
 import refArchOverrides from './RefArch'
 import refArchGlobalOverrides from './RefArchGlobal'
 
-const allSitesTheme = extendTheme(allSitesOverrides)
-const refArchTheme = extendTheme(refArchOverrides)
-const refArchGlobalTheme = extendTheme(refArchGlobalOverrides)
+const refArchTheme = {...allSitesOverrides, ...refArchOverrides}
+const refArchGlobalTheme = {...allSitesOverrides, ...refArchGlobalOverrides}
 
-const RefArch = {...allSitesTheme, ...refArchTheme}
-const RefArchGlobal = {...allSitesTheme, ...refArchGlobalTheme}
+const allSitesTheme = extendTheme(allSitesOverrides)
+const RefArch = extendTheme(refArchTheme)
+const RefArchGlobal = extendTheme(refArchGlobalTheme)
 
 const themes = {
     default: allSitesTheme,
